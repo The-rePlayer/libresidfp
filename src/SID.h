@@ -173,17 +173,17 @@ private:
     }
 
     /// clock internal and external filters
-    inline int32_t clockFilt()
+    inline SampleI32 clockFilt()
     {
-        uint16_t filtOutput = filter->clock(voice[0], voice[1], voice[2]);
-        int32_t exFiltInput = static_cast<int32_t>(filtOutput) + INT16_MIN;
+        SampleU16 filtOutput = filter->clock(voice[0], voice[1], voice[2]);
+        SampleI32 exFiltInput = { static_cast<int32_t>(filtOutput.left) + INT16_MIN, static_cast<int32_t>(filtOutput.right) + INT16_MIN };
         return externalFilter.clock(exFiltInput);
     }
 
     /// scale and limit output
-    inline int16_t getOutput()
+    inline SampleI16 getOutput()
     {
-        const int32_t out = (scaleFactor * resampler->output()) / 2;
+        const SampleI32 out = (scaleFactor * resampler->output()) / 2;
         return Limiter::softClip(out + m_noise.output());
     }
 
@@ -306,7 +306,7 @@ public:
      * @param buf audio output buffer
      * @return number of samples produced
      */
-    int clock(unsigned int cycles, int16_t* buf);
+    int clock(unsigned int cycles, SampleI16* buf);
 
     /**
      * Clock SID forward using chosen output resampling algorithm.
@@ -315,7 +315,7 @@ public:
      * @param bufSize the buffer size
      * @return number of c64 clocks run
      */
-    int clock(int16_t* buf, int bufSize);
+    int clock(SampleI16* buf, int bufSize);
 
     /**
      * Clock SID forward with no audio production.
@@ -400,6 +400,8 @@ public:
      * Set the background noise level.
      */
     void setNoiseLevel(int level);
+
+    void surround(bool enabled);
 };
 
 } // namespace reSIDfp
@@ -429,7 +431,7 @@ void SID::ageBusValue(int n)
 }
 
 RESIDFP_INLINE
-int SID::clock(unsigned int cycles, int16_t* buf)
+int SID::clock(unsigned int cycles, SampleI16* buf)
 {
     assert(buf);
 
@@ -447,7 +449,7 @@ int SID::clock(unsigned int cycles, int16_t* buf)
                 clockWaveGen();
                 clockEnvGen();
 
-                int32_t output = clockFilt();
+                SampleI32 output = clockFilt();
                 if (unlikely(resampler->input(output)))
                 {
                     buf[s++] = getOutput();
@@ -468,7 +470,7 @@ int SID::clock(unsigned int cycles, int16_t* buf)
 }
 
 RESIDFP_INLINE
-int SID::clock(int16_t* buf, int bufSize)
+int SID::clock(SampleI16* buf, int bufSize)
 {
     assert(buf);
     assert(bufSize > 0);
@@ -488,7 +490,7 @@ int SID::clock(int16_t* buf, int bufSize)
                 clockWaveGen();
                 clockEnvGen();
 
-                int32_t output = clockFilt();
+                SampleI32 output = clockFilt();
                 if (unlikely(resampler->input(output)))
                 {
                     buf[s++] = getOutput();

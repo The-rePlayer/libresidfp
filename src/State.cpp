@@ -99,9 +99,9 @@ int State::saveState(SID &s, char* buffer, int size)
     for (int i = 0; i < 2; i++)
     {
         Filter* f = (i == 0) ? static_cast<Filter*>(s.filter6581) : static_cast<Filter*>(s.filter8580);
-        state.Vhp[i] = f->Vhp;
-        state.Vbp[i] = f->Vbp;
-        state.Vlp[i] = f->Vlp;
+        state.Vhp[i][0] = f->Vhp[0]; state.Vhp[i][1] = f->Vhp[1];
+        state.Vbp[i][0] = f->Vbp[0]; state.Vbp[i][1] = f->Vbp[1];
+        state.Vlp[i][0] = f->Vlp[0]; state.Vlp[i][1] = f->Vlp[1];
         state.extin[i] = f->extin;
         state.fc[i] = f->fc;
         state.filt1[i] = f->filt1;
@@ -121,23 +121,23 @@ int State::saveState(SID &s, char* buffer, int size)
     state.filterCurve8580 = s.p->filterCurve8580;
     state.caps6581 = s.p->caps6581;
 
-    state.vx[0][0] = s.filter6581->hpIntegrator.vx;
-    state.vx[0][1] = s.filter6581->bpIntegrator.vx;
-    state.vx[1][0] = s.filter8580->hpIntegrator.vx;
-    state.vx[1][1] = s.filter8580->bpIntegrator.vx;
-    state.vc[0][0] = s.filter6581->hpIntegrator.vc;
-    state.vc[0][1] = s.filter6581->bpIntegrator.vc;
-    state.vc[1][0] = s.filter8580->hpIntegrator.vc;
-    state.vc[1][1] = s.filter8580->bpIntegrator.vc;
-    state.nVddt_Vw_2[0] = s.filter6581->hpIntegrator.nVddt_Vw_2;
-    state.nVddt_Vw_2[1] = s.filter6581->bpIntegrator.nVddt_Vw_2;
-    state.nVgt[0] = s.filter8580->hpIntegrator.nVgt;
-    state.nVgt[1] = s.filter8580->bpIntegrator.nVgt;
-    state.n_dac[0] = s.filter8580->hpIntegrator.n_dac;
-    state.n_dac[1] = s.filter8580->bpIntegrator.n_dac;
+    state.vx[0][0][0] = s.filter6581->hpIntegrator[0].vx; state.vx[1][0][0] = s.filter6581->hpIntegrator[1].vx;
+    state.vx[0][0][1] = s.filter6581->bpIntegrator[0].vx; state.vx[1][0][1] = s.filter6581->bpIntegrator[1].vx;
+    state.vx[0][1][0] = s.filter8580->hpIntegrator[0].vx; state.vx[1][1][0] = s.filter8580->hpIntegrator[1].vx;
+    state.vx[0][1][1] = s.filter8580->bpIntegrator[0].vx; state.vx[1][1][1] = s.filter8580->bpIntegrator[1].vx;
+    state.vc[0][0][0] = s.filter6581->hpIntegrator[0].vc; state.vc[1][0][0] = s.filter6581->hpIntegrator[1].vc;
+    state.vc[0][0][1] = s.filter6581->bpIntegrator[0].vc; state.vc[1][0][1] = s.filter6581->bpIntegrator[1].vc;
+    state.vc[0][1][0] = s.filter8580->hpIntegrator[0].vc; state.vc[1][1][0] = s.filter8580->hpIntegrator[1].vc;
+    state.vc[0][1][1] = s.filter8580->bpIntegrator[0].vc; state.vc[1][1][1] = s.filter8580->bpIntegrator[1].vc;
+    state.nVddt_Vw_2[0][0] = s.filter6581->hpIntegrator[0].nVddt_Vw_2; state.nVddt_Vw_2[1][0] = s.filter6581->hpIntegrator[1].nVddt_Vw_2;
+    state.nVddt_Vw_2[0][1] = s.filter6581->bpIntegrator[0].nVddt_Vw_2; state.nVddt_Vw_2[1][1] = s.filter6581->bpIntegrator[1].nVddt_Vw_2;
+    state.nVgt[0][0] = s.filter8580->hpIntegrator[0].nVgt; state.nVgt[1][0] = s.filter8580->hpIntegrator[1].nVgt;
+    state.nVgt[0][1] = s.filter8580->bpIntegrator[0].nVgt; state.nVgt[1][1] = s.filter8580->bpIntegrator[1].nVgt;
+    state.n_dac[0][0] = s.filter8580->hpIntegrator[0].n_dac; state.n_dac[1][0] = s.filter8580->hpIntegrator[1].n_dac;
+    state.n_dac[0][1] = s.filter8580->bpIntegrator[0].n_dac; state.n_dac[1][1] = s.filter8580->bpIntegrator[1].n_dac;
 
-    state.exVlp = s.externalFilter.Vlp;
-    state.exVhp = s.externalFilter.Vhp;
+    state.exVlp[0] = s.externalFilter.Vlp[0]; state.exVlp[1] = s.externalFilter.Vlp[1];
+    state.exVhp[0] = s.externalFilter.Vhp[0]; state.exVhp[1] = s.externalFilter.Vhp[1];
     state.ext_res = s.externalFilter.m_ext_res;
     state.clockFrequency = s.externalFilter.m_frequency;
 
@@ -214,9 +214,9 @@ void State::restoreState(SID &s, char* buffer, int size)
     for (int i = 0; i < 2; i++)
     {
         Filter* f = (i == 0) ? static_cast<Filter*>(s.filter6581) : static_cast<Filter*>(s.filter8580);
-        f->Vhp = state.Vhp[i];
-        f->Vbp = state.Vbp[i];
-        f->Vlp = state.Vlp[i];
+        f->Vhp[0] = state.Vhp[i][0]; f->Vhp[1] = state.Vhp[i][1];
+        f->Vbp[0] = state.Vbp[i][0]; f->Vbp[1] = state.Vbp[i][1];
+        f->Vlp[0] = state.Vlp[i][0]; f->Vlp[1] = state.Vlp[i][1];
         f->extin = state.extin[i];
         f->fc = state.fc[i];
         f->filt1 = state.filt1[i];
@@ -238,23 +238,23 @@ void State::restoreState(SID &s, char* buffer, int size)
     s.setFilter8580Curve(state.filterCurve8580);
     s.set6581caps(state.caps6581);
 
-    s.filter6581->hpIntegrator.vx = state.vx[0][0];
-    s.filter6581->bpIntegrator.vx = state.vx[0][1];
-    s.filter8580->hpIntegrator.vx = state.vx[1][0];
-    s.filter8580->bpIntegrator.vx = state.vx[1][1];
-    s.filter6581->hpIntegrator.vc = state.vc[0][0];
-    s.filter6581->bpIntegrator.vc = state.vc[0][1];
-    s.filter8580->hpIntegrator.vc = state.vc[1][0];
-    s.filter8580->bpIntegrator.vc = state.vc[1][1];
-    s.filter6581->hpIntegrator.nVddt_Vw_2 = state.nVddt_Vw_2[0];
-    s.filter6581->bpIntegrator.nVddt_Vw_2 = state.nVddt_Vw_2[1];
-    s.filter8580->hpIntegrator.nVgt = state.nVgt[0];
-    s.filter8580->bpIntegrator.nVgt = state.nVgt[1];
-    s.filter8580->hpIntegrator.n_dac = state.n_dac[0];
-    s.filter8580->bpIntegrator.n_dac = state.n_dac[1];
+    s.filter6581->hpIntegrator[0].vx = state.vx[0][0][0]; s.filter6581->hpIntegrator[1].vx = state.vx[1][0][0];
+    s.filter6581->bpIntegrator[0].vx = state.vx[0][0][1]; s.filter6581->bpIntegrator[1].vx = state.vx[1][0][1];
+    s.filter8580->hpIntegrator[0].vx = state.vx[0][1][0]; s.filter8580->hpIntegrator[1].vx = state.vx[1][1][0];
+    s.filter8580->bpIntegrator[0].vx = state.vx[0][1][1]; s.filter8580->bpIntegrator[1].vx = state.vx[1][1][1];
+    s.filter6581->hpIntegrator[0].vc = state.vc[0][0][0]; s.filter6581->hpIntegrator[1].vc = state.vc[1][0][0];
+    s.filter6581->bpIntegrator[0].vc = state.vc[0][0][1]; s.filter6581->bpIntegrator[1].vc = state.vc[1][0][1];
+    s.filter8580->hpIntegrator[0].vc = state.vc[0][1][0]; s.filter8580->hpIntegrator[1].vc = state.vc[1][1][0];
+    s.filter8580->bpIntegrator[0].vc = state.vc[0][1][1]; s.filter8580->bpIntegrator[1].vc = state.vc[1][1][1];
+    s.filter6581->hpIntegrator[0].nVddt_Vw_2 = state.nVddt_Vw_2[0][0]; s.filter6581->hpIntegrator[1].nVddt_Vw_2 = state.nVddt_Vw_2[1][0];
+    s.filter6581->bpIntegrator[0].nVddt_Vw_2 = state.nVddt_Vw_2[0][1]; s.filter6581->bpIntegrator[1].nVddt_Vw_2 = state.nVddt_Vw_2[1][1];
+    s.filter8580->hpIntegrator[0].nVgt = state.nVgt[0][0]; s.filter8580->hpIntegrator[1].nVgt = state.nVgt[1][0];
+    s.filter8580->bpIntegrator[0].nVgt = state.nVgt[0][1]; s.filter8580->bpIntegrator[1].nVgt = state.nVgt[1][1];
+    s.filter8580->hpIntegrator[0].n_dac = state.n_dac[0][0]; s.filter8580->hpIntegrator[1].n_dac = state.n_dac[1][0];
+    s.filter8580->bpIntegrator[0].n_dac = state.n_dac[0][1]; s.filter8580->bpIntegrator[1].n_dac = state.n_dac[1][1];
 
-    s.externalFilter.Vlp = state.exVlp;
-    s.externalFilter.Vhp = state.exVhp;
+    s.externalFilter.Vlp[0] = state.exVlp[0]; s.externalFilter.Vlp[1] = state.exVlp[1];
+    s.externalFilter.Vhp[0] = state.exVhp[0]; s.externalFilter.Vhp[1] = state.exVhp[1];
     s.externalFilter.m_ext_res = state.ext_res;
 
     s.setSamplingParameters(state.clockFrequency, state.method, state.samplingFrequency);

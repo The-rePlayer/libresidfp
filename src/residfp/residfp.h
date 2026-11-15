@@ -26,6 +26,8 @@
 #include "residfp/residfp_defs.h"
 #include "residfp/sidversion.h"
 
+struct SampleI16;
+
 /**
  * \file residfp.h
  *
@@ -170,7 +172,7 @@ public:
      * @param buf audio output buffer
      * @return number of 16bit samples produced
      */
-    int clock(unsigned int cycles, short* buf);
+    int clock(unsigned int cycles, SampleI16* buf);
 
     /**
      * Clock SID forward producing audio
@@ -180,7 +182,7 @@ public:
      * @param bufSize the buffer size as number of 16bit samples
      * @return number of c64 clocks run
      */
-    int clock(short* buf, int bufSize);
+    int clock(SampleI16* buf, int bufSize);
 
     /**
      * Clock SID forward with no audio production.
@@ -348,6 +350,8 @@ public:
      * @since 1.3
      */
     void noiseLevel(int level);
+
+    void surround(bool enabled);
 };
 
 }

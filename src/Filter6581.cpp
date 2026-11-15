@@ -37,8 +37,10 @@ Filter6581::~Filter6581()
 void Filter6581::updateCenterFrequency()
 {
     const uint16_t Vw = f0_dac[getFC()];
-    hpIntegrator.setVw(Vw);
-    bpIntegrator.setVw(Vw);
+    hpIntegrator[0].setVw(Vw);
+    hpIntegrator[1].setVw(Vw);
+    bpIntegrator[0].setVw(Vw);
+    bpIntegrator[1].setVw(Vw);
 }
 
 void Filter6581::setFilterCurve(double curvePosition)

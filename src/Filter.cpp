@@ -52,24 +52,33 @@ void Filter::updateMixing()
 {
     currentVolume = volume + (vol * (1<<16));
 
-    int Nsum = 0;
-    int Nmix = 0;
+    for (int i = 0; i < 2; ++i)
+    {
+        int Nsum = 0;
+        int Nmix = 0;
 
-    (filt1 ? Nsum : Nmix)++;
-    (filt2 ? Nsum : Nmix)++;
+        if (i == 0 || !isSurroundEnabled)
+            (filt1 ? Nsum : Nmix)++;
+        if (i == 1 || !isSurroundEnabled)
+            (filt2 ? Nsum : Nmix)++;
 
-    if (filt3) Nsum++;
-    else if (!voice3off) Nmix++;
+        if (i == 0 || !isSurroundEnabled)
+        {
+            if (filt3) Nsum++;
+            else if (!voice3off) Nmix++;
+        }
 
-    (filtE ? Nsum : Nmix)++;
+        if (i == 1 || !isSurroundEnabled)
+            (filtE ? Nsum : Nmix)++;
 
-    currentSummer = summer + summerIdx[Nsum];
+        currentSummer[i] = summer + summerIdx[Nsum];
 
-    if (lp) Nmix++;
-    if (bp) Nmix++;
-    if (hp) Nmix++;
+        if (lp) Nmix++;
+        if (bp) Nmix++;
+        if (hp) Nmix++;
 
-    currentMixer = mixer + mixerIdx[Nmix];
+        currentMixer[i] = mixer + mixerIdx[Nmix];
+    }
 }
 
 void Filter::writeFC_LO(uint8_t fc_lo)
@@ -113,15 +122,15 @@ void Filter::writeMODE_VOL(uint8_t mode_vol)
 }
 
 Filter::Filter(const FilterModelConfig& fmc,
-               const Integrator& hpIntegrator,
-               const Integrator& bpIntegrator) :
+               const Integrator& hpIntegrator0, const Integrator& hpIntegrator1,
+               const Integrator& bpIntegrator0, const Integrator& bpIntegrator1) :
     mixer(fmc.getMixer()),
     summer(fmc.getSummer()),
     resonance(fmc.getResonance()),
     volume(fmc.getVolume()),
     m_fmc(fmc),
-    m_hpIntegrator(hpIntegrator),
-    m_bpIntegrator(bpIntegrator)
+    m_hpIntegrator0(hpIntegrator0), m_hpIntegrator1(hpIntegrator1),
+    m_bpIntegrator0(bpIntegrator0), m_bpIntegrator1(bpIntegrator1)
 {
     input(0);
 }
@@ -146,6 +155,12 @@ void Filter::reset()
     writeFC_HI(0);
     writeMODE_VOL(0);
     writeRES_FILT(0);
+}
+
+void Filter::surround(bool surroundEnabled)
+{
+    isSurroundEnabled = surroundEnabled;
+    updateMixing();
 }
 
 } // namespace reSIDfp

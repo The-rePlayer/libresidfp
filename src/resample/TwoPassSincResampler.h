@@ -74,12 +74,12 @@ public:
             clockFrequency, samplingFrequency, halfFreq, intermediateFrequency);
     }
 
-    bool input(int32_t sample) override
+    bool input(SampleI32 sample) override
     {
         return s1->input(sample) && s2->input(s1->output());
     }
 
-    int32_t output() const override
+    SampleI32 output() const override
     {
         return s2->output();
     }

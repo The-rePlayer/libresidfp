@@ -29,7 +29,7 @@
 #include <thread>
 
 #if defined(HAVE_CXX20) && defined(__cpp_lib_jthread)
-#  define HAVE_JTHREADS
+ // rePlayer #  define HAVE_JTHREADS
 #endif
 
 namespace reSIDfp

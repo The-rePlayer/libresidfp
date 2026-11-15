@@ -323,10 +323,10 @@ class Filter6581 final : public Filter
 
 private:
     /// VCR + associated capacitor connected to highpass output.
-    Integrator6581 hpIntegrator;
+    Integrator6581 hpIntegrator[2];
 
     /// VCR + associated capacitor connected to bandpass output.
-    Integrator6581 bpIntegrator;
+    Integrator6581 bpIntegrator[2];
 
     const uint16_t* f0_dac;
 
@@ -336,7 +336,7 @@ protected:
      */
     void updateCenterFrequency() override;
 
-    void restartIntegrators() override { hpIntegrator.restart(); bpIntegrator.restart(); }
+    void restartIntegrators() override { hpIntegrator[0].restart(); bpIntegrator[0].restart(); hpIntegrator[1].restart(); bpIntegrator[1].restart(); }
 
     /*
      * The filter input resistors on the 6581 are slightly bigger than the voice ones,
@@ -349,9 +349,9 @@ protected:
 
 public:
     Filter6581() :
-        Filter(*FilterModelConfig6581::getInstance(), hpIntegrator, bpIntegrator),
-        hpIntegrator(*FilterModelConfig6581::getInstance()),
-        bpIntegrator(*FilterModelConfig6581::getInstance()),
+        Filter(*FilterModelConfig6581::getInstance(), hpIntegrator[0], hpIntegrator[1], bpIntegrator[0], bpIntegrator[1]),
+        hpIntegrator{ Integrator6581(*FilterModelConfig6581::getInstance()), Integrator6581(*FilterModelConfig6581::getInstance()) },
+        bpIntegrator{ Integrator6581(*FilterModelConfig6581::getInstance()), Integrator6581(*FilterModelConfig6581::getInstance()) },
         f0_dac(FilterModelConfig6581::getInstance()->getDAC(0.5))
     {}
 

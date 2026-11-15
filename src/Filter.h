@@ -47,15 +47,17 @@ private:
 
     const FilterModelConfig& m_fmc;
 
-    const Integrator& m_hpIntegrator;
+    const Integrator& m_hpIntegrator0;
+    const Integrator& m_hpIntegrator1;
 
-    const Integrator& m_bpIntegrator;
+    const Integrator& m_bpIntegrator0;
+    const Integrator& m_bpIntegrator1;
 
     /// Current filter/voice mixer setting.
-    uint16_t* currentMixer = nullptr;
+    uint16_t* currentMixer[2] = { nullptr };
 
     /// Filter input summer setting.
-    uint16_t* currentSummer = nullptr;
+    uint16_t* currentSummer[2] = { nullptr };
 
     /// Filter resonance value.
     uint16_t* currentResonance = nullptr;
@@ -64,13 +66,13 @@ private:
     uint16_t* currentVolume = nullptr;
 
     /// Filter highpass state.
-    int32_t Vhp = 0;
+    int32_t Vhp[2] = { 0 };
 
     /// Filter bandpass state.
-    int32_t Vbp = 0;
+    int32_t Vbp[2] = { 0 };
 
     /// Filter lowpass state.
-    int32_t Vlp = 0;
+    int32_t Vlp[2] = { 0 };
 
     /// Filter external input.
     float extin = 0;
@@ -102,6 +104,8 @@ private:
 
     /// Filter enabled.
     bool enabled = true;
+
+    bool isSurroundEnabled = false;
 
     /// Selects which inputs to route through filter.
     uint8_t filt = 0;
@@ -140,8 +144,8 @@ protected:
 
 public:
     Filter(const FilterModelConfig& fmc,
-           const Integrator& hpIntegrator,
-           const Integrator& bpIntegrator);
+           const Integrator& hpIntegrator0, const Integrator& hpIntegrator1,
+           const Integrator& bpIntegrator0, const Integrator& bpIntegrator1);
 
     virtual ~Filter() = default;
 
@@ -153,7 +157,7 @@ public:
      * @param voice3 voice 3 in
      * @return filtered output, unsigned 16 bit
      */
-    uint16_t clock(Voice& voice1, Voice& voice2, Voice& voice3);
+    SampleU16 clock(Voice& voice1, Voice& voice2, Voice& voice3);
 
     /**
      * Enable filter.
@@ -202,7 +206,9 @@ public:
      */
     void input(int16_t input) { extin = input/65535.f; }
 
-    void restart() { restartIntegrators(); Vhp = 0; Vlp = 0; Vbp = 0; }
+    void restart() { restartIntegrators(); Vhp[0] = 0; Vlp[0] = 0; Vbp[0] = 0; Vhp[1] = 0; Vlp[1] = 0; Vbp[1] = 0; }
+
+    void surround(bool surroundEnabled);
 };
 
 } // namespace reSIDfp
@@ -213,7 +219,7 @@ namespace reSIDfp
 {
 
 RESIDFP_INLINE
-uint16_t Filter::clock(Voice& voice1, Voice& voice2, Voice& voice3)
+SampleU16 Filter::clock(Voice& voice1, Voice& voice2, Voice& voice3)
 {
     // Waveform outputs
     const float wav1 = voice1.output();
@@ -225,35 +231,58 @@ uint16_t Filter::clock(Voice& voice1, Voice& voice2, Voice& voice3)
     const uint8_t env2 = voice2.envelope()->output();
     const uint8_t env3 = voice3.envelope()->output();
 
+    int32_t v1 = getNormalizedVoice(wav1, env1);
+    int32_t v2 = getNormalizedVoice(wav2, env2);
+    int32_t v3 = getNormalizedVoice(wav3, env3);
+    int32_t vE = getNormalizedVoice(extin, 0);
+
     // Voltage summer for filter input
-    int32_t Vsum = 0;
-    Vsum += filt1 ? getNormalizedVoice(wav1, env1) : 0;
-    Vsum += filt2 ? getNormalizedVoice(wav2, env2) : 0;
-    Vsum += filt3 ? getNormalizedVoice(wav3, env3) : 0;
-    Vsum += filtE ? getNormalizedVoice(extin, 0) : 0;
-    Vsum += Vlp;
-    Vsum += currentResonance[Vbp];
+    int32_t Vsum[2] = { 0 };
+    Vsum[0] += filt1 ? v1 : 0;
+    Vsum[0] += filt2 && !isSurroundEnabled ? v2 : 0;
+    Vsum[0] += filt3 ? v3 : 0;
+    Vsum[0] += filtE && !isSurroundEnabled ? vE : 0;
+    Vsum[0] += Vlp[0];
+    Vsum[0] += currentResonance[Vbp[0]];
+    Vsum[1] += filt1 && !isSurroundEnabled ? v1 : 0;
+    Vsum[1] += filt2 ? v2 : 0;
+    Vsum[1] += filt3 && !isSurroundEnabled ? v3 : 0;
+    Vsum[1] += filtE ? vE : 0;
+    Vsum[1] += Vlp[1];
+    Vsum[1] += currentResonance[Vbp[1]];
 
     // Filter
-    Vhp = currentSummer[Vsum];
-    Vbp = m_hpIntegrator.solve(Vhp);
-    Vlp = m_bpIntegrator.solve(Vbp);
+    Vhp[0] = currentSummer[0][Vsum[0]];
+    Vbp[0] = m_hpIntegrator0.solve(Vhp[0]);
+    Vlp[0] = m_bpIntegrator0.solve(Vbp[0]);
+    Vhp[1] = currentSummer[1][Vsum[1]];
+    Vbp[1] = m_hpIntegrator1.solve(Vhp[1]);
+    Vlp[1] = m_bpIntegrator1.solve(Vbp[1]);
 
-    int32_t Vfilt = 0;
-    if (lp) Vfilt += Vlp;
-    if (bp) Vfilt += Vbp;
-    if (hp) Vfilt += Vhp;
+    int32_t Vfilt[2] =  { 0 };
+    if (lp) Vfilt[0] += Vlp[0];
+    if (bp) Vfilt[0] += Vbp[0];
+    if (hp) Vfilt[0] += Vhp[0];
+    if (lp) Vfilt[1] += Vlp[1];
+    if (bp) Vfilt[1] += Vbp[1];
+    if (hp) Vfilt[1] += Vhp[1];
 
     // Voltage summer for mixer input
-    int32_t Vmix = 0;
-    Vmix += filt1 ? 0 : getNormalizedMixerVoice(wav1, env1);
-    Vmix += filt2 ? 0 : getNormalizedMixerVoice(wav2, env2);
+    int32_t Vmix[2] = { 0 };
+    Vmix[0] += filt1 ? 0 : v1;
+    Vmix[0] += filt2 || isSurroundEnabled ? 0 : v2;
     // Voice 3 is silenced by voice3off if it is not routed through the filter
-    Vmix += (filt3 || voice3off) ? 0 : getNormalizedMixerVoice(wav3, env3);
-    Vmix += filtE ? 0 : getNormalizedMixerVoice(extin, 0);
-    Vmix += Vfilt;
+    Vmix[0] += (filt3 || voice3off) ? 0 : v3;
+    Vmix[0] += filtE || isSurroundEnabled ? 0 : vE;
+    Vmix[0] += Vfilt[0];
+    Vmix[1] += filt1 || isSurroundEnabled ? 0 : v1;
+    Vmix[1] += filt2 ? 0 : v2;
+    // Voice 3 is silenced by voice3off if it is not routed through the filter
+    Vmix[1] += (filt3 || voice3off || isSurroundEnabled) ? 0 : v3;
+    Vmix[1] += filtE ? 0 : vE;
+    Vmix[1] += Vfilt[1];
 
-    return currentVolume[currentMixer[Vmix]];
+    return { currentVolume[currentMixer[0][Vmix[0]]], currentVolume[currentMixer[1][Vmix[1]]] };
 }
 
 } // namespace reSIDfp

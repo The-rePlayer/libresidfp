@@ -655,4 +655,9 @@ void SID::setNoiseLevel(int level)
     m_noise.setLevel(clamp<int, 0, 8>(level));
 }
 
+void SID::surround(bool enabled)
+{
+    filter->surround(enabled);
+}
+
 } // namespace reSIDfp

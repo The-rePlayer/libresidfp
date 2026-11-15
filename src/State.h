@@ -120,9 +120,9 @@ private:
     uint8_t env3[3];
 
     // Filter
-    int32_t Vhp[2];
-    int32_t Vbp[2];
-    int32_t Vlp[2];
+    int32_t Vhp[2][2];
+    int32_t Vbp[2][2];
+    int32_t Vlp[2][2];
     float extin[2];
     uint8_t fc[2];
     uint8_t vol[2];
@@ -143,15 +143,15 @@ private:
     CapsType caps6581;
 
     // Integrators
-    int32_t vx[2][2];
-    int32_t vc[2][2];
-    uint32_t nVddt_Vw_2[2];
-    uint16_t nVgt[2];
-    uint16_t n_dac[2];
+    int32_t vx[2][2][2];
+    int32_t vc[2][2][2];
+    uint32_t nVddt_Vw_2[2][2];
+    uint16_t nVgt[2][2];
+    uint16_t n_dac[2][2];
 
     /// External filter
-    int32_t exVlp;
-    int32_t exVhp;
+    int32_t exVlp[2];
+    int32_t exVhp[2];
     double ext_res;
 
     // Resampler
@@ -159,15 +159,15 @@ private:
     double samplingFrequency;
     SamplingMethod method;
     // ZeroOrder
-    int32_t zor_cachedSample;
-    int32_t zor_outputValue;
+    SampleI32 zor_cachedSample;
+    SampleI32 zor_outputValue;
     int zor_sampleOffset;
     //  PassThrough
-    int pt_outputValue;
+    SampleI32 pt_outputValue;
     // TwoPassSinc
     int tp_sampleIndex[2];
     int tp_sampleOffset[2];
-    int32_t tp_outputValue[2];
+    SampleI32 tp_outputValue[2];
 };
 
 

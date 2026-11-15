@@ -68,7 +68,7 @@ namespace
     /*
      * Soft Clipping into 16 bit range [-32768,32767]
      */
-    inline int16_t softClip(int32_t x) { return static_cast<int16_t>(softClipImpl(x)); }
+    inline SampleI16 softClip(SampleI32 x) { return { static_cast<int16_t>(softClipImpl(x.left)), static_cast<int16_t>(softClipImpl(x.right)) }; }
 } // namespace Limiter
 
 } // namespace reSIDfp

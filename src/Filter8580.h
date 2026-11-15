@@ -280,10 +280,10 @@ class Filter8580 final : public Filter
 
 private:
     /// VCR + associated capacitor connected to highpass output.
-    Integrator8580 hpIntegrator;
+    Integrator8580 hpIntegrator[2];
 
     /// VCR + associated capacitor connected to bandpass output.
-    Integrator8580 bpIntegrator;
+    Integrator8580 bpIntegrator[2];
 
     double cp;
 
@@ -293,7 +293,7 @@ protected:
      */
     void updateCenterFrequency() override;
 
-    void restartIntegrators() override { hpIntegrator.restart(); bpIntegrator.restart(); }
+    void restartIntegrators() override { hpIntegrator[0].restart(); bpIntegrator[0].restart(); hpIntegrator[1].restart(); bpIntegrator[1].restart(); }
 
     int32_t getNormalizedMixerVoice(float v, uint8_t env) const override
     {
@@ -302,9 +302,9 @@ protected:
 
 public:
     Filter8580() :
-        Filter(*FilterModelConfig8580::getInstance(), hpIntegrator, bpIntegrator),
-        hpIntegrator(*FilterModelConfig8580::getInstance()),
-        bpIntegrator(*FilterModelConfig8580::getInstance())
+        Filter(*FilterModelConfig8580::getInstance(), hpIntegrator[0], hpIntegrator[1], bpIntegrator[0], bpIntegrator[1]),
+        hpIntegrator{ Integrator8580(*FilterModelConfig8580::getInstance()), Integrator8580(*FilterModelConfig8580::getInstance()) },
+        bpIntegrator{ Integrator8580(*FilterModelConfig8580::getInstance()), Integrator8580(*FilterModelConfig8580::getInstance()) }
     {
         setFilterCurve(0.5);
     }

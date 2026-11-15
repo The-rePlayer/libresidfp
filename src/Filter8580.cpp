@@ -58,8 +58,10 @@ void Filter8580::updateCenterFrequency()
         wl = dacWL/2.;
     }
 
-    hpIntegrator.setFc(wl);
-    bpIntegrator.setFc(wl);
+    hpIntegrator[0].setFc(wl);
+    hpIntegrator[1].setFc(wl);
+    bpIntegrator[0].setFc(wl);
+    bpIntegrator[1].setFc(wl);
 }
 
 void Filter8580::setFilterCurve(double curvePosition)
@@ -68,8 +70,10 @@ void Filter8580::setFilterCurve(double curvePosition)
     // 1.2 <= cp <= 1.8
     cp = 1.8 - curvePosition * 3./5.;
 
-    hpIntegrator.setV(cp);
-    bpIntegrator.setV(cp);
+    hpIntegrator[0].setV(cp);
+    hpIntegrator[1].setV(cp);
+    bpIntegrator[0].setV(cp);
+    bpIntegrator[1].setV(cp);
 }
 
 } // namespace reSIDfp

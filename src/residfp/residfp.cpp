@@ -110,12 +110,12 @@ bool residfp::setSamplingParameters(
     }
 }
 
-int residfp::clock(unsigned int cycles, short* buf)
+int residfp::clock(unsigned int cycles, SampleI16* buf)
 {
     return sid.clock(cycles, buf);
 }
 
-int residfp::clock( short* buf, int bufSize)
+int residfp::clock(SampleI16* buf, int bufSize)
 {
     return sid.clock(buf, bufSize);
 }
@@ -203,4 +203,9 @@ void residfp::enableStrongPS(bool enable)
 void residfp::noiseLevel(int level)
 {
     sid.setNoiseLevel(level);
+}
+
+void residfp::surround(bool enabled)
+{
+    sid.surround(enabled);
 }

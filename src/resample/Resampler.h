@@ -23,6 +23,7 @@
 #define RESAMPLER_H
 
 #include <cstdint>
+#include "../siddefs-fp.h"
 
 namespace reSIDfp
 {
@@ -45,14 +46,14 @@ public:
      * @param sample input sample
      * @return true when a sample is ready
      */
-    virtual bool input(int32_t sample) = 0;
+    virtual bool input(SampleI32 sample) = 0;
 
     /**
      * Output a sample from resampler.
      *
      * @return resampled sample
      */
-    virtual int32_t output() const = 0;
+    virtual SampleI32 output() const = 0;
 
     virtual void reset() = 0;
 };
